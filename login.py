@@ -98,9 +98,52 @@ def login_selenium_firefox(username, password):
     return token, gsessionid
 
 
+def exercise_sign_out(token, jsessionid, longitude="108.655286", latitude="34.238000"):
+    """
+    锻炼过程积分签退。使用 requests 实现 post 请求
+    """
+    import requests
+
+    url = "https://ipahw.xjtu.edu.cn/szjy-boot/api/v1/sportActa/signOutTrain"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+        "Accept": "*/*",
+        "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
+        "Accept-Encoding": "gzip, deflate, br",
+        "content-type": "application/json",
+        "token": token,
+        "Origin": "https://ipahw.xjtu.edu.cn",
+        "DNT": "1",
+        "Sec-GPC": "1",
+        "Connection": "keep-alive",
+        "Referer": "https://ipahw.xjtu.edu.cn/pages/index/hdgl/hdgl_run?courseType=7&signType=2&activityAddress=&courseInfoId=1759468647346147329",
+        "Cookie": "JSESSIONID=" + jsessionid,
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-origin",
+        "sec-ch-ua-platform": "Windows",
+        "sec-ch-ua": '"Google Chrome";v="118", "Chromium";v="118", "Not=A?Brand";v="24"',
+        "sec-ch-ua-mobile": "?0",
+    }
+    data = {
+        "longitude": longitude,
+        "latitude": latitude,
+    }
+    response = requests.post(url, headers=headers, json=data)
+    ret = response.json()
+    if "success" in ret:
+        is_success = ret["success"]
+        print(ret["msg"])
+        return is_success, ret["msg"]
+    return None, "Unknown error"
+
+
 if __name__ == "__main__":
     # 测试
     username = "2177124317"  # 学工号
     password = "password"  # 密码
     token, gsessionid = login_selenium_firefox(username, password)
     print("test login_selenium_firefox. token:", token, " gsessionid:", gsessionid)
+    if token and gsessionid:
+        is_success, msg = exercise_sign_out(token, gsessionid)
+        print("test exercise_sign_out. is_success:", is_success, " msg:", msg)
