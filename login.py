@@ -1,3 +1,4 @@
+import random
 import time
 
 
@@ -98,9 +99,66 @@ def login_selenium_firefox(username, password):
     return token, gsessionid
 
 
+def exercise_sign_in(
+    token: str,
+    jsessionid: str,
+    longitude: str = "108.655286",
+    latitude: str = "34.238000",
+    course_info_id: str = "1759468647346147329",
+):
+    """
+    锻炼过程积分签到。使用 requests 实现 post 请求
+
+
+    已知返回的 msg 有：
+    签到成功！
+    距离最近的指定运动地点超过100m，无法打卡
+    """
+    import requests
+
+    url = "https://ipahw.xjtu.edu.cn/szjy-boot/api/v1/sportActa/signRun"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+        "Accept": "*/*",
+        "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
+        "Accept-Encoding": "gzip, deflate, br",
+        "content-type": "application/json",
+        "token": token,
+        "Origin": "https://ipahw.xjtu.edu.cn",
+        "DNT": "1",
+        "Sec-GPC": "1",
+        "Connection": "keep-alive",
+        "Referer": "https://ipahw.xjtu.edu.cn/pages/index/hdgl/hdgl_run?courseType=7&signType=1&activityAddress=&courseInfoId="
+        + course_info_id,
+        "Cookie": "JSESSIONID=" + jsessionid,
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-origin",
+        "sec-ch-ua-platform": "Windows",
+        "sec-ch-ua": '"Google Chrome";v="118", "Chromium";v="118", "Not=A?Brand";v="24"',
+        "sec-ch-ua-mobile": "?0",
+    }
+    data = {
+        "sportType": 2,
+        "longitude": longitude,
+        "latitude": latitude,
+        "courseInfoId": course_info_id,
+    }
+    response = requests.post(url, headers=headers, json=data)
+    ret = response.json()
+    if "success" in ret:
+        is_success = ret["success"]
+        return is_success, ret["msg"]
+    return None, "Unknown error"
+
+
 def exercise_sign_out(token, jsessionid, longitude="108.655286", latitude="34.238000"):
     """
     锻炼过程积分签退。使用 requests 实现 post 请求
+
+    已知返回的 msg 有：
+    签退成功！
+    你已签退成功,请勿重复签退！
     """
     import requests
 
@@ -145,5 +203,13 @@ if __name__ == "__main__":
     token, gsessionid = login_selenium_firefox(username, password)
     print("test login_selenium_firefox. token:", token, " gsessionid:", gsessionid)
     if token and gsessionid:
+        time.sleep(random.randint(2, 4))  # 随机等待几秒，避免被识别为爬虫
+        is_success, msg = exercise_sign_in(token, gsessionid)
+        print("test exercise_sign_in. is_success:", is_success, " msg:", msg)
+        time.sleep(random.randint(1888, 3600))  # 锻炼 ing，之后再签退
+        token, gsessionid = login_selenium_firefox(
+            username, password
+        )  # 刷新 token 和 gsessionid
+        time.sleep(random.randint(2, 4))
         is_success, msg = exercise_sign_out(token, gsessionid)
         print("test exercise_sign_out. is_success:", is_success, " msg:", msg)
