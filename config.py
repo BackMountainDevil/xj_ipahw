@@ -1,8 +1,8 @@
 import configparser
 
 
-def getConfig(section, option, configFile="config.ini"):
-    # use configparser read config from config.ini
+def getConfig(section, option, configFile=".env"):
+    # use configparser read config from .env
     cfg = configparser.RawConfigParser()  # 创建配置文件对象
     cfg.optionxform = lambda option: option  # 重载键值存储时不重置为小写
     cfg.read(configFile, encoding="utf-8")  # 读取配置文件，没有就创建
